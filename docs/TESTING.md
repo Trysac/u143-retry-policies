@@ -2,27 +2,23 @@
 
 ## Tools
 
-- [Vitest](https://vitest.dev/) runs the suites in `test/`.
-- Coverage is collected with V8 (`@vitest/coverage-v8`) over `src/`.
+- [Vitest](https://vitest.dev/) runs the suites in `test/index.test.ts`.
 
-## Commands
+## Coverage
 
-```sh
-npm test            # vitest run --coverage
-npx vitest          # watch mode while developing
-npm run check       # every gate, including tests
-```
+The test suite covers the following areas:
+
+- **Backoff strategies**: Verification of exponential, constant, capped, full jitter, and decorrelated jitter calculations using fixed random inputs and boundary conditions.
+- **Retry runner**: 
+  - Successful resolution after initial failures.
+  - Exhaustion of attempts (with correct error wrapping).
+  - Predicate (`retryIf`) filtering.
+  - Deadline enforcement via `maxElapsedMs`.
+  - Cancellation handling via `AbortSignal`.
+  - Policy configuration validation (e.g., bounds checking).
+  - Handling of synchronous exceptions and non-Error rejections.
 
 ## Rules
 
-- Coverage must stay at or above 80 % for lines, branches, functions and statements (`vitest.config.ts`).
-  Lowering the thresholds is not allowed.
-- Test through the public entry point (`src/index.ts`) and assert observable behavior: return values,
-  thrown errors and their messages.
-- Each bug fix adds a test that fails without the fix.
-- Tests are deterministic: no network, no real clock or randomness without injection, no shared state between
-  tests. Temporary files go to the OS temp directory and are removed by the test.
-
-## Reports
-
-Coverage reports are written to `coverage/` (text summary and `lcov`). The folder is ignored by git.
+- Tests use dependency injection for `sleep`, `now`, and `random` to ensure zero non-determinism.
+- Each bug fix requires a regression test.

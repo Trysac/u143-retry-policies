@@ -1,28 +1,14 @@
-# Security practices
+# Security
 
-How this repository keeps the package and its users safe. The disclosure policy is in
-[../SECURITY.md](../SECURITY.md).
+## Threat Model
 
-## Secrets
+### Resource Exhaustion (DoS)
+- `maxAttempts` is strictly capped between 1 and 1000 to prevent infinite loops.
+- `maxElapsedMs` enforces a deadline, preventing runaway retry chains during upstream degradation.
+- Truncated error messages (max 200 characters) prevent memory inflation when upstream services return massive payloads.
 
-- No secrets, tokens or credentials in the repository, commit history, logs or prompts.
-- `gitleaks` runs as the last step of `npm run check` and as a dedicated CI job. Its configuration is
-  `.gitleaks.toml`.
-- Publishing credentials live only in the CI secret store or the maintainer's local npm configuration.
-
-## Dependencies
-
-- Runtime dependencies are avoided; development dependencies are limited to the toolchain listed in
-  [STACK.md](STACK.md).
-- Dependabot opens weekly updates for npm packages and GitHub Actions.
-- Commit the generated `package-lock.json` so installs are reproducible.
-
-## Code
-
-- No `eval`, dynamic `Function` construction or shelling out from library code.
-- Inputs from callers are validated and rejected with explicit errors.
-
-## Publishing
-
-- Packages are published from a clean checkout after `npm run check` passes.
-- Only `dist/` is included in the published tarball.
+### Defenses
+- The library uses standard language primitives.
+- Random numbers are generated via `Math.random` (default) or the injected `random` function.
+- `AbortSignal` provides native, safe cancellation of operations.
+- Error messages are truncated to prevent log injection or memory exhaustion from large error strings.

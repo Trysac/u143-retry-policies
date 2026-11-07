@@ -1,55 +1,43 @@
-# retry-policies
+# @trysac/retry-policies
 
-[![npm version](https://img.shields.io/npm/v/@trysac/retry-policies.svg)](https://www.npmjs.com/package/@trysac/retry-policies)
-[![license: MIT](https://img.shields.io/npm/l/@trysac/retry-policies.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u143-retry-policies/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u143-retry-policies/actions/workflows/ci.yml)
-
-Composable retry policies for TypeScript: constant, exponential, full-jitter and decorrelated-jitter backoff, caps, deadlines, retry predicates and AbortSignal
+Composable, zero-dependency retry policies for TypeScript and Node.js 20+ / modern browsers.
 
 ## Problem
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and why existing
-packages do not solve it well. Keep it factual; link to an issue or decision record when there is one.
+Every service retries flaky calls, but hand-written loops often fail to include caps, continue to sleep after the final attempt, ignore cancellation, or blindly retry errors that will never succeed. This library provides composable backoff functions and a single retry runner with injected dependencies, ensuring exact, deterministic behavior.
 
-## Install
+## Installation
 
-```sh
+```bash
 npm install @trysac/retry-policies
 ```
 
-Requires Node.js 20 or newer. The package ships ES modules with TypeScript declarations.
+## Usage Example
 
-## Usage
+```typescript
+import { retry, exponentialBackoff, capped, fullJitter } from "@trysac/retry-policies";
 
-```ts
-import { greet } from "@trysac/retry-policies";
-
-// Build a greeting; surrounding whitespace is ignored.
-const message = greet("  Ada ");
-console.log(message); // "Hello, Ada!"
-
-try {
-  greet("   ");
-} catch (error) {
-  console.error((error as Error).message); // "name must not be empty"
-}
+const backoff = capped(fullJitter(exponentialBackoff({ baseMs: 100, factor: 2 })), 3000);
+const res = await retry(async (attempt, signal) => fetch("https://example.com", { signal }), {
+  maxAttempts: 5,
+  backoff,
+  maxElapsedMs: 10000,
+});
 ```
 
-## API
+## API Summary
 
-| Export | Signature | Description |
-|---|---|---|
-| `greet` | `(name: string) => string` | Placeholder API; replace it with the real one. |
+- `retry<T>(fn, policy, deps?): Promise<T>`
+- `exponentialBackoff(opts): Backoff`
+- `constantBackoff(ms): Backoff`
+- `capped(b, maxMs): Backoff`
+- `fullJitter(b): Backoff`
+- `decorrelatedJitter(opts): Backoff`
 
-## Development
+Errors are thrown as `RetryError` with codes: `attempts_exhausted`, `deadline_exceeded`, `aborted`, `invalid_policy`. Limits: `maxAttempts` (1-1000), error message truncation (200 chars). Options like `maxElapsedMs` and `AbortSignal` are supported natively.
 
-```sh
-npm install
-npm run check   # lint, format, types, tests with coverage, docs, secrets
-```
+## Why not p-retry or cockatiel?
 
-See [AGENTS.md](AGENTS.md) for the full command list and [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow.
+This library is tiny, dependency-free, and provides composable backoff functions with exact, injectable semantics for testing, unlike larger alternatives.
 
-## License
-
-[MIT](LICENSE) © 2026 Miguel Gomez
+See [docs/SECURITY.md](docs/SECURITY.md) for security information.

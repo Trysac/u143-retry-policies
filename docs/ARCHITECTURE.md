@@ -1,30 +1,9 @@
 # Architecture
 
-## Overview
+`@trysac/retry-policies` is designed as a small, dependency-free library providing modular retry and backoff primitives for JavaScript and TypeScript runtimes (Node.js 20+, browsers, Cloudflare Workers, Deno, Bun).
 
-`@trysac/retry-policies` is a small, dependency-free TypeScript library published to npm as ES modules with type
-declarations. Composable retry policies for TypeScript: constant, exponential, full-jitter and decorrelated-jitter backoff, caps, deadlines, retry predicates and AbortSignal
+## Core Concepts
 
-## Modules
-
-| Module | Responsibility |
-|---|---|
-| `src/index.ts` | Public API. Everything consumers import is exported from here. |
-
-Add a row when you add a module. Internal modules are not re-exported unless they are part of the public API.
-
-## Boundaries
-
-- No runtime dependencies by default; any addition is justified in [STACK.md](STACK.md).
-- No I/O at import time. Functions are pure unless their documentation says otherwise.
-- Errors are thrown as built-in error types (`TypeError`, `RangeError`) with actionable messages.
-
-## Build and distribution
-
-`npm run build` compiles `src/` to `dist/` with `tsconfig.build.json`. Only `dist/` is published
-(`files` in `package.json`).
-
-## Decisions
-
-Architectural decisions are recorded in [decisions/](decisions/), starting with
-[0001](decisions/0001-record-architecture-decisions.md).
+1. **Pure Backoff Functions**: Backoff algorithms match the signature `(attempt, previousDelayMs, random) => number`. Strategies can be composed via functional decorators (such as `capped` or `fullJitter`).
+2. **Deterministic Injectability**: The `retry` runner accepts custom implementations of `sleep`, `now`, and `random`, decoupling time and non-determinism from test suites.
+3. **Cancellation & Deadlines**: Standard `AbortSignal` integrates directly into the execution loop and default timer mechanism. If `maxElapsedMs` is configured, deadline overrun is detected *before* initiating sleep.
