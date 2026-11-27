@@ -8,9 +8,15 @@ Every service retries flaky calls, but hand-written loops often fail to include 
 
 ## Installation
 
-```bash
-npm install @trysac/retry-policies
+Not published to npm yet. Build it from a clone, then install it from the local path:
+
+```sh
+git clone https://github.com/Trysac/u143-retry-policies.git
+cd u143-retry-policies && npm ci && npm run build
+cd ../your-project && npm install ../u143-retry-policies
 ```
+
+Imports keep the package name: `import { ... } from "@trysac/retry-policies"`.
 
 ## Usage Example
 
